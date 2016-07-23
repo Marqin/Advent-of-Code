@@ -1,9 +1,6 @@
 (ns day-02.core
-  (:gen-class))
-
-(require 'clojure.string)
-(import 'java.lang.Integer)
-(import 'java.io.BufferedReader)
+  (:gen-class)
+  (:require clojure.string))
 
 (defn get-facets [[h l w]]
   [(* l w) (* h w) (* l h)])
@@ -20,9 +17,9 @@
     (reduce * dimensions)))
 
 (defn parse-line [line]
-  (map #(Integer/parseInt %) (clojure.string/split line #"x" )))
+  (map #(java.lang.Integer/parseInt %) (clojure.string/split line #"x" )))
 
 (defn -main []
-  (let [boxes (map parse-line (line-seq (BufferedReader. *in*)))]
+  (let [boxes (map parse-line (line-seq (java.io.BufferedReader. *in*)))]
       (println (reduce + (map paper boxes)))
       (println (reduce + (map ribbon boxes)))))
