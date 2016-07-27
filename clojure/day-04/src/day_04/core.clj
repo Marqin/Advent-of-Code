@@ -12,11 +12,24 @@
           (.reset)
           (.update (.getBytes input)))
       hash-string
-        (.toString
-          (java.math.BigInteger. 1 (.digest hash-bytes)) 16)
-      padding (apply str (repeat (- 32 (count hash-string)) "0"))]
+        (as-> (.digest hash-bytes) v
+          (java.math.BigInteger. 1 v)
+          (.toString v 16))
+      padding
+        (as-> (count hash-string) v
+          (- 32 v)
+          (repeat v "0")
+          (apply str v))]
     (str padding hash-string)))
 
 (defn -main []
   (let [pass "iwrupvqb"]
-    (println (first (for [x (range) :when (.startsWith (md5 (str pass x)) "000000")] x)))))
+    (->
+      [x (range) :when
+        (->
+          (str pass x)
+          (md5 ,,,)
+          (.startsWith ,,, "00000"))]
+      (for ,,, x)
+      (first ,,,)
+      (println ,,,))))
