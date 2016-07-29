@@ -12,23 +12,22 @@ type Node = (Command, Rectangle)
 data Command = TurnOn | TurnOff | Toggle deriving (Show, Eq)
 type Rectangle = (Coord, Coord)
 type Coord = (Int, Int)
-data Light = Off | On deriving (Show, Eq)
-
-toggle :: Light -> Light
-toggle On = Off
-toggle Off = On
+type Light = Int
+type SwitchFunction = Command -> Vec.Vector Light -> Int -> (Int, Light)
 
 mapSize :: Int
 mapSize = 1000
 
 start :: Vec.Vector Light
-start = Vec.replicate (mapSize*mapSize) Off
+start = Vec.replicate (mapSize*mapSize) 0
 
 main :: IO ()
-main = do interact (\x -> (show . countLights . generateMap . getTree) x ++ "\n")
+main = interact day06
 
-countLights :: Vec.Vector Light -> Int
-countLights v = Vec.length $ Vec.filter (\x -> x == On) v
+day06 str = part1 ++ part2
+  where
+    part1 = (show . sum . (generateMap switch1) . getTree) str ++ "\n"
+    part2 = (show . sum . (generateMap switch2) . getTree) str ++ "\n"
 
 --- Parser
 
@@ -62,13 +61,13 @@ parseCoord =
      y <- read <$> MP.some MP.digitChar
      return (x, y)
 
------ Part 1
+----- Common
 
-generateMap :: [Node] -> Vec.Vector Light
-generateMap input = foldl updateMap start input
+generateMap :: SwitchFunction -> [Node] -> Vec.Vector Light
+generateMap s input = foldl (updateMap s) start input
 
-updateMap :: Vec.Vector Light -> Node -> Vec.Vector Light
-updateMap m (light, rect) = m Vec.// (map (switch light m) $ idxInside rect)
+updateMap :: SwitchFunction -> Vec.Vector Light -> Node -> Vec.Vector Light
+updateMap s m (light, rect) = m Vec.// (map (s light m) $ idxInside rect)
 
 idxInside :: Rectangle -> [Int]
 idxInside x = map idx $ pointsInside x
@@ -85,9 +84,26 @@ pointsInside ((x1, y1), (x2, y2)) =
 idx :: (Int, Int) -> Int
 idx (x,y) = x + mapSize * y
 
-switch :: Command -> Vec.Vector Light -> Int -> (Int, Light)
-switch TurnOn _ x = (x, On)
-switch TurnOff _ x = (x, Off)
-switch Toggle m x = (x, toggle (m Vec.! x))
+toggle :: Light -> Light
+toggle 1 = 0
+toggle 0 = 1
 
------
+----- Part 1
+
+switch1 :: SwitchFunction
+switch1 TurnOn _ x = (x, 1)
+switch1 TurnOff _ x = (x, 0)
+switch1 Toggle m x = (x, toggle (m Vec.! x))
+
+----- Part 2
+
+switch2 :: SwitchFunction
+switch2 TurnOn m x = (x, (m Vec.! x) + 1)
+switch2 TurnOff m x = (x, decrease m x)
+switch2 Toggle m x = (x, (m Vec.! x) + 2)
+
+decrease :: Vec.Vector Light -> Int -> Int
+decrease m x
+  | val < 1 = 0
+  | otherwise = val - 1
+  where val = (m Vec.! x)
