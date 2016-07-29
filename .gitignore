@@ -11,3 +11,9 @@ pom.xml.asc
 /clojure/*/.nrepl-port
 .hgignore
 .hg/
+
+
+# Haskell
+
+/haskell/*
+!/haskell/*.hs
